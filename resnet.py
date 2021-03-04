@@ -23,6 +23,7 @@ from PIL import Image
 import torch.nn.functional as F
 from torchvision.utils import make_grid, save_image
 
+
 class MyModule(nn.Module):
     def __init__(self):
         super(MyModule, self).__init__()
@@ -118,18 +119,12 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=500):
 
 data_transforms = {
     'train': transforms.Compose([
-        transforms.Grayscale(),
-        transforms.Resize((90,45),interpolation=Image.CUBIC),
-        transforms.CenterCrop((90,45)),
-        transforms.RandomRotation((-15,15)),
+#        transforms.Grayscale(),
         transforms.ToTensor(),
         # transforms.Normalize(mean=[0.4,0.4,0.2], std=[0.5,0.5,0.5]),
     ]),
     'val': transforms.Compose([
-        transforms.Grayscale(),
-        transforms.Resize((90,45),interpolation=Image.CUBIC),
-        transforms.CenterCrop((90,45)),
-        transforms.RandomRotation((-15,15)),
+#        transforms.Grayscale(),
         transforms.ToTensor(),
         # transforms.Normalize(mean=[0.1,0.1,0.2], std=[0.1,0.12,0.13]),
     ]),
@@ -149,34 +144,32 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 # Visualize batch imgs
-# for i,(data,label) in enumerate(dataloaders['val']):
-#     img = make_grid(data,nrow=8)
-#     save_image(img, 'batch-img-%s.jpg'%i)
-#     if i >2:
-#         break
+#for i,(data,label) in enumerate(dataloaders['val']):
+#    img = make_grid(data,nrow=8)
+#    save_image(img, 'batch-img-%s.jpg'%i)
+#    if i >2:
+#        break
 
-#model_conv = torchvision.models.resnet18()
-#
-#model_conv.conv1.in_channels = 1
-#print(model_conv.load_state_dict)
-#num_ftrs = model_conv.fc.in_features
-#model_conv.fc = nn.Linear(num_ftrs, 38)
-#model_conv = model_conv.to(device)
-## print(model_conv.load_state_dict)
-#
-#criterion = nn.CrossEntropyLoss()
-#
-#
-#optimizer_conv = optim.Adam(model_conv.parameters(), lr=0.001)
-#
-#
-#exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=10, gamma=0.1)
-#
-#model_conv = train_model(model_conv, criterion, optimizer_conv,
-#                            exp_lr_scheduler, num_epochs=100)
+model = torchvision.models.resnet18()
+model.conv1.in_channels = 1
+num_ftrs = model.fc.in_features
+model.fc = nn.Linear(num_ftrs, 11)
+model_conv = model.to(device)
+print(model_conv.load_state_dict)
 
-# torch.save(model_conv, 'resnet50_v1.pth')
+criterion = nn.CrossEntropyLoss()
 
-# torch.cuda.empty_cache()
+
+optimizer_conv = optim.Adam(model_conv.parameters(), lr=0.001)
+
+
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=10, gamma=0.1)
+
+model_conv = train_model(model_conv, criterion, optimizer_conv,
+                            exp_lr_scheduler, num_epochs=100)
+
+torch.save(model_conv, 'resnet18_v1.pth')
+
+torch.cuda.empty_cache()
 
 
